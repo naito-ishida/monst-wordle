@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>モンストWordle | 5文字で当てろ</title>
+
+  <!-- OGP -->
+  <meta property="og:title" content="モンストWordle | 5文字で当てろ" />
+  <meta property="og:description" content="モンストキャラ名を5文字で当てるWordle風ゲーム" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=Monst+Wordle" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- favicon -->
+  <link rel="icon" href="data:image/png;base64,iVBORw0KGgo=" />
+
+  <style>
+    body { margin:0; font-family:sans-serif; background:#141e30; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .app { width:100%; max-width:420px; padding:20px; background:#243b55; border-radius:16px; }
+    .row { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-bottom:6px; }
+    .cell { height:50px; display:flex; align-items:center; justify-content:center; border:1px solid #aaa; }
+    .correct{ background:#36b37e }
+    .present{ background:#ffab00 }
+    .absent{ background:#5e6c84 }
+    input{ width:100%; padding:10px; margin-top:10px; }
+    button{ margin-top:8px; width:100%; padding:10px; }
+    .keyboard{ display:grid; grid-template-columns:repeat(10,1fr); gap:4px; margin-top:10px; }
+    .key{ font-size:10px; padding:4px; background:#ccc; color:#000; text-align:center }
+    .key.correct{ background:#36b37e }
+    .key.present{ background:#ffab00 }
+    .key.absent{ background:#000; color:#fff }
+  </style>
+</head>
+<body>
+<div class="app">
+  <h2>モンストWordle</h2>
+  <div id="board"></div>
+  <input id="input" maxlength="5" placeholder="カタカナ5文字" />
+  <button onclick="submitGuess()">判定</button>
+  <div id="keyboard" class="keyboard"></div>
+</div>
+
+<script>
+const words=["ルシファー","ラファエル","ガブリエル","メタトロン","アルセーヌ","ザドキエル","バルバトス","アスタロト","ポセイドン","アマテラス","ベルゼブブ","ハーメルン","ナポレオン","オーディン","ヘラクレス"];
+let answer=words[Math.floor(Math.random()*words.length)];
+let attempt=0;
+const max=6;
+const board=document.getElementById("board");
+const keyState={};
+const kana=["ア","イ","ウ","エ","オ","ァ","ィ","ゥ","ェ","ォ","カ","キ","ク","ケ","コ","ガ","ギ","グ","ゲ","ゴ","サ","シ","ス","セ","ソ","ザ","ジ","ズ","ゼ","ゾ","タ","チ","ツ","テ","ト","ダ","ヂ","ヅ","デ","ド","ナ","ニ","ヌ","ネ","ノ","ハ","ヒ","フ","ヘ","ホ","バ","ビ","ブ","ベ","ボ","パ","ピ","プ","ペ","ポ","マ","ミ","ム","メ","モ","ヤ","ユ","ヨ","ャ","ュ","ョ","ラ","リ","ル","レ","ロ","ワ","ヲ","ン","ー"];
+
+function init(){
+ board.innerHTML="";
+ for(let i=0;i<max;i++){
+  let r=document.createElement("div");r.className="row";
+  for(let j=0;j<5;j++){let c=document.createElement("div");c.className="cell";r.appendChild(c)}
+  board.appendChild(r);
+ }
+ renderKeyboard();
+}
+
+function renderKeyboard(){
+ const k=document.getElementById("keyboard");
+ k.innerHTML="";
+ kana.forEach(ch=>{
+  let d=document.createElement("div");
+  d.textContent=ch;
+  d.className="key"+(keyState[ch]?" "+keyState[ch]:"");
+  k.appendChild(d);
+ })
+}
+
+function evalGuess(g){
+ let res=Array(5).fill("absent");
+ let a=answer.split("");
+ let gArr=g.split("");
+ for(let i=0;i<5;i++){ if(gArr[i]===a[i]){res[i]="correct";a[i]=null;gArr[i]=null}}
+ for(let i=0;i<5;i++){ if(gArr[i]&&a.includes(gArr[i])){res[i]="present";a[a.indexOf(gArr[i])]=null}}
+ return res;
+}
+
+function submitGuess(){
+ if(attempt>=max)return;
+ let g=document.getElementById("input").value;
+ if(g.length!==5)return;
+ let row=board.children[attempt];
+ let res=evalGuess(g);
+ g.split("").forEach((ch,i)=>{
+  let c=row.children[i];c.textContent=ch;c.classList.add(res[i]);
+  if(res[i]==="correct"|| (res[i]==="present"&&keyState[ch]!=="correct")||!keyState[ch]){
+    keyState[ch]=res[i];
+  }
+ });
+ renderKeyboard();
+ attempt++;
+}
+
+init();
+</script>
+</body>
+</html>
